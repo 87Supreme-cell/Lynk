@@ -1,7 +1,9 @@
 from pathlib import Path
+from subprocess import CompletedProcess
 
 from pypdf import PdfWriter
 
+from lynk import cli
 from lynk.ingestion import DocumentIngestor
 
 
@@ -49,3 +51,14 @@ def test_blank_pdf_is_preserved_and_flagged_for_ocr(tmp_path: Path) -> None:
     assert len(document.pages) == 1
     assert document.pages[0].number == 1
     assert document.pages[0].needs_ocr is True
+
+
+def test_choose_document_path_uses_native_picker_result(monkeypatch) -> None:
+    selected_path = "/Users/example/Documents/evidence.pdf\n"
+
+    def fake_run(*_args, **_kwargs) -> CompletedProcess[str]:
+        return CompletedProcess(args=[], returncode=0, stdout=selected_path)
+
+    monkeypatch.setattr(cli.subprocess, "run", fake_run)
+
+    assert cli.choose_document_path() == Path(selected_path.strip())

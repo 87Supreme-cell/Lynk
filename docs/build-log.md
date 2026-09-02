@@ -5,6 +5,33 @@ authoritative record of exact code changes; this file explains intent,
 validation, constraints, and next steps without including private reasoning or
 user data.
 
+## 2026-09-02 - Native document selection for local ingestion
+
+**Goal**
+
+Make first-time local document ingestion usable without manually discovering
+or typing brittle iCloud filesystem paths.
+
+**Implemented**
+
+- Added `lynk ingest --choose`, which opens the native macOS file picker and
+  passes the selected file's exact POSIX path into the existing safe ingestion
+  pipeline.
+- Preserved the explicit path option for scripts, automation, and non-macOS
+  environments.
+
+**Validation**
+
+- Added a unit test for the picker result handling. The selected file still
+  goes through the same type validation, immutable local copy, hashing,
+  extraction, chunking, and PostgreSQL storage steps.
+
+**Known limitations / next step**
+
+- This is a terminal-launched native picker, not yet a browser upload screen.
+  Add a local dashboard upload flow after SQL integration tests establish the
+  retrieval contract.
+
 ## Entry template
 
 ```md

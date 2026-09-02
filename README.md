@@ -47,6 +47,16 @@ lynk ingest /path/to/document.pdf --data-dir ./data --storage postgres
 lynk documents --storage postgres
 ```
 
+On macOS, avoid typing or copying a cloud-storage path by using the native
+file picker instead:
+
+```bash
+lynk ingest --choose --data-dir ./data --storage postgres
+```
+
+Choose a file in the window that opens. Lynk receives the exact filesystem path
+from macOS, which avoids fragile iCloud/Finder path copying.
+
 The schema uses relational columns for frequent filters, JSONB for evolving
 metadata, pgvector for future semantic embeddings, and full-text indexes for
 keyword retrieval. The agent will access these only through safe, parameterized

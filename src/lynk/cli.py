@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import subprocess
 from pathlib import Path
 
 from lynk.catalog import DocumentCatalog
@@ -13,11 +14,28 @@ from lynk.research import LocalResearchPlanner
 from lynk.retrieval import PostgresRetriever
 
 
+def choose_document_path() -> Path:
+    """Open the macOS file picker and return the user-selected file path."""
+    try:
+        result = subprocess.run(
+            ["osascript", "-e", "POSIX path of (choose file with prompt \"Choose a document for Lynk\")"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError as error:
+        raise RuntimeError("--choose is available on macOS only; provide a file path instead.") from error
+    except subprocess.CalledProcessError as error:
+        raise RuntimeError("No document was selected.") from error
+    return Path(result.stdout.strip())
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="lynk", description="Local evidence-governed research agent")
     commands = parser.add_subparsers(dest="command", required=True)
     ingest = commands.add_parser("ingest", help="Ingest a local text, Markdown, or PDF document")
-    ingest.add_argument("path", type=Path)
+    ingest.add_argument("path", type=Path, nargs="?", help="Path to the document to ingest")
+    ingest.add_argument("--choose", action="store_true", help="Choose a document in the native macOS file picker")
     ingest.add_argument("--data-dir", type=Path, default=Path("data"))
     ingest.add_argument("--ocr", action="store_true", help="Use local ocrmypdf when text extraction is missing")
     ingest.add_argument("--storage", choices=("sqlite", "postgres"), default="sqlite")
@@ -33,7 +51,12 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "ingest":
-        document = DocumentIngestor(args.data_dir, OCRmyPDFEngine() if args.ocr else None).ingest(args.path)
+        if args.choose and args.path:
+            parser.error("provide either a path or --choose, not both")
+        if not args.choose and args.path is None:
+            parser.error("path is required unless --choose is used")
+        source_path = choose_document_path() if args.choose else args.path
+        document = DocumentIngestor(args.data_dir, OCRmyPDFEngine() if args.ocr else None).ingest(source_path)
         if args.storage == "postgres":
             PostgresDocumentCatalog.from_environment().add(document)
         else:
