@@ -16,6 +16,8 @@ user data.
 
 **Affected modules**
 
+**Decisions**
+
 **Validation**
 
 **Known limitations / next step**
@@ -47,6 +49,15 @@ Create a local, provenance-preserving foundation for user document ingestion.
 - `tests/`
 - `docs/architecture.md`
 
+**Decisions**
+
+- Decided to add a committed engineering ledger so the path from an empty
+  repository to a working, evidence-governed research agent is visible during
+  interviews.
+- Decided to require the coding agent to update this ledger for meaningful code
+  changes, preserving the goal, validation, limitations, and next step without
+  recording private reasoning, credentials, or user documents.
+
 **Validation**
 
 - `pytest`: 4 tests passed.
@@ -63,4 +74,3 @@ Create a local, provenance-preserving foundation for user document ingestion.
 **Commit**
 
 - `51f957b` - `feat: add local document ingestion foundation`
-
