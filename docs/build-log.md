@@ -25,6 +25,77 @@ user data.
 **Commit**
 ```
 
+## 2026-09-01 - Milestone 2 foundation: SQL-first retrieval store
+
+**Goal**
+
+Create a local PostgreSQL/pgvector foundation for metadata-aware RAG while
+keeping the initial SQLite catalog as an explicit migration source.
+
+**Implemented**
+
+- Added a Docker Compose PostgreSQL/pgvector service and local environment
+  template.
+- Added a versioned SQL schema for collections, documents, pages, chunks,
+  research runs, retrieval events, review items, and a schema registry.
+- Added a PostgreSQL document catalog adapter, a `--storage postgres` CLI
+  option, and a restricted retrieval-schema registry for future model planning.
+
+**Decisions**
+
+- Chose PostgreSQL with pgvector as the long-term RAG source of truth because
+  its relational model, JSONB metadata, transactional audit trail, full-text
+  search, and vector support fit the expected local project scale.
+- Kept the model away from arbitrary SQL; it will choose only registered
+  retrieval resources and validated filters.
+
+**Validation**
+
+- `pytest`: 6 tests passed.
+- `ruff check .`: passed.
+- `docker compose config --quiet`: passed.
+
+**Known limitations / next step**
+
+- The Docker daemon was unavailable in this environment, so the live
+  PostgreSQL ingestion smoke test remains to be run after Docker Desktop is
+  started.
+- Next: SQLite-to-PostgreSQL migration utility, page-aware chunks, embeddings,
+  and hybrid retrieval queries.
+
+**Commit**
+
+- Pending this implementation commit.
+
+## 2026-09-01 - Decision: SQL-first retrieval on PostgreSQL with pgvector
+
+**Goal**
+
+Define a durable retrieval store that can grow from local document ingestion to
+metadata-aware, evidence-governed RAG.
+
+**Decisions**
+
+- Decided to use local PostgreSQL with pgvector as Lynk's long-term retrieval
+  store rather than treating a separate vector database as the system of record.
+- Store frequently filtered fields in relational columns and evolving document
+  metadata, retrieval plans, and decision traces in JSONB. Keep embeddings in
+  pgvector and use PostgreSQL full-text search for hybrid retrieval.
+- Chose this after considering projected project growth: PostgreSQL provides
+  more than sufficient local growth headroom while retaining SQL joins,
+  transactions, migrations, auditability, and a portfolio-relevant schema.
+- The agent will use a restricted schema registry and parameterized retrieval
+  tools, not arbitrary model-generated SQL.
+
+**Known limitations / next step**
+
+- Introduce the local Docker PostgreSQL/pgvector service, versioned schema,
+  catalog adapter, and migration path from the initial SQLite catalog.
+
+**Commit**
+
+- Pending this decision-record commit.
+
 ## 2026-09-01 - Decision: local-first repository recovery
 
 **Goal**

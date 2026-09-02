@@ -16,8 +16,11 @@ page before it can influence a research answer.
 4. An injected OCR engine can produce text for those pages. The initial
    production adapter uses the local `ocrmypdf` command when installed; tests
    use a fake engine.
-5. `DocumentCatalog` stores the source, immutable copy location, hash,
-   extraction status, and every extracted page in SQLite.
+5. The initial `DocumentCatalog` stores the source, immutable copy location,
+   hash, extraction status, and every extracted page in SQLite. The long-term
+   catalog adapter writes the same provenance into local PostgreSQL with
+   pgvector, where relational fields, JSONB metadata, full-text search, and
+   future embeddings stay connected.
 
 ## Non-goals
 
@@ -26,9 +29,9 @@ content to the web. Those are separate promotion-gated stages.
 
 ## Next milestones
 
-1. Page-aware chunking and a local embedding adapter.
-2. Vector plus keyword retrieval with collection and permission filters.
+1. Migrate initial SQLite catalog records into PostgreSQL and add page-aware
+   chunking with a local embedding adapter.
+2. Add vector plus keyword retrieval with collection and permission filters.
 3. Review queue and approved-evidence promotion.
 4. Topic-driven, policy-limited web research.
 5. A local model adapter and OpenAI-compatible agent API for Open WebUI.
-
