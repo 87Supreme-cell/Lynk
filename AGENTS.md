@@ -44,3 +44,13 @@ promotion. A user explicitly approves or rejects each candidate.
 - Keep architecture decisions, threat model, evaluations, and demo steps in
   `docs/`; use synthetic/public data only in Git.
 
+## Engineering record
+
+For every meaningful code change, update `docs/build-log.md` in the same
+commit. Record the goal, implementation summary, affected modules, validation,
+known limitations, next step, and commit reference. Do not record credentials,
+private document contents, raw tool output, or private chain-of-thought.
+
+Use `docs/decisions/` for durable architecture decision records. Each decision
+must state its context, decision, alternatives considered, consequences, and
+status. Keep `CHANGELOG.md` for user-facing release notes only.

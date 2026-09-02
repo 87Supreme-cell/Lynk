@@ -47,5 +47,6 @@ user document
   -> [next] chunking, embeddings, hybrid retrieval, review-gated RAG
 ```
 
-See [docs/architecture.md](docs/architecture.md) and [AGENTS.md](AGENTS.md).
-
+See [docs/architecture.md](docs/architecture.md),
+[docs/build-log.md](docs/build-log.md), [docs/decisions](docs/decisions), and
+[AGENTS.md](AGENTS.md).
