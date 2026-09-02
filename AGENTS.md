@@ -35,6 +35,14 @@ trace: sources considered/rejected, source tier, relevance/quality signals,
 supporting excerpts, conflicts, uncertainty, and the policy rule governing
 promotion. A user explicitly approves or rejects each candidate.
 
+## SQL-first retrieval verification
+
+Before a model receives retrieved evidence, validate the deterministic path with
+a synthetic fixture: document/page/chunk rows, collection and permission scope,
+metadata filters, expected SQL result order, and page citations. The model may
+summarize verified evidence; it must not compensate for empty or unverified
+retrieval by guessing.
+
 ## Engineering
 
 - Keep external integrations narrow, typed, injectable, and covered by test

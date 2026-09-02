@@ -25,6 +25,36 @@ user data.
 **Commit**
 ```
 
+## 2026-09-02 - Decision: SQL verification before agent drafting
+
+**Goal**
+
+Make retrieval correctness independently observable before relying on a local
+model to synthesize or explain evidence.
+
+**Decisions**
+
+- Decided that chunk creation, metadata filters, permission scope, and SQL
+  retrieval must be designed and tested as deterministic code before the agent
+  is allowed to draft an answer from their output.
+- The initial local-model smoke test returned no evidence because the first
+  full-text query required every normalized question term to match. The issue
+  was diagnosed directly in PostgreSQL and corrected before Qwen was used for a
+  successful cited draft.
+- Future retrieval work will begin with a documented SQL query, a synthetic
+  fixture, expected rows and citations, and an integration test. The model is a
+  consumer of verified evidence, not a substitute for retrieval correctness.
+
+**Known limitations / next step**
+
+- Add database integration tests that initialize PostgreSQL, ingest a fixture,
+  assert chunk rows and authorized retrieval results, then separately test the
+  model-facing draft.
+
+**Commit**
+
+- Pending this decision-record commit.
+
 ## 2026-09-02 - Milestone 4 foundation: local retrieval-to-model drafting
 
 **Goal**
