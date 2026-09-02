@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: lynk
+Version: 0.1.0
+Summary: A local, evidence-governed research agent
+Requires-Python: >=3.11
+Requires-Dist: pypdf>=5.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: ruff>=0.8; extra == "dev"
