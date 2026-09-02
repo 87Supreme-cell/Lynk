@@ -53,6 +53,25 @@ keyword retrieval. The agent will access these only through safe, parameterized
 retrieval tools described by a schema registry; it will not generate arbitrary
 SQL.
 
+## Local Gemma and Qwen models
+
+Lynk does not download models or silently use a cloud fallback. It can call an
+already-running local Ollama or Open WebUI runtime. Set the model ID exposed by
+your runtime, then verify the connection:
+
+```bash
+export LYNK_MODEL_PROVIDER=ollama
+export LYNK_MODEL_BASE_URL=http://localhost:11434
+export LYNK_MODEL_NAME='your-gemma-or-qwen-model-id'
+lynk models
+lynk chat 'Reply with the word ready.'
+```
+
+For a locally running Open WebUI service, use `LYNK_MODEL_PROVIDER=open_webui`
+and its local base URL. Set `LYNK_MODEL_API_KEY` only if the local instance
+requires it. The adapter sends conservative `temperature` and `top_p` settings
+from the environment on every request.
+
 By default, `data/` is intentionally ignored by Git. Keep private documents,
 database files, model weights, and secrets local. Commit only synthetic or
 public fixtures and reproducible scripts.

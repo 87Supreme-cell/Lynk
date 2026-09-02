@@ -25,6 +25,35 @@ user data.
 **Commit**
 ```
 
+## 2026-09-01 - Milestone 3 foundation: local model adapters
+
+**Goal**
+
+Allow Lynk to use an already-installed local Gemma or Qwen model while keeping
+the provider, endpoint, model ID, and sampling settings explicit.
+
+**Implemented**
+
+- Added typed adapters for local Ollama and Open WebUI chat-completions
+  endpoints.
+- Added `lynk models` for discovery and `lynk chat` for a direct local runtime
+  smoke test.
+- Added model configuration through ignored environment values, with no cloud
+  fallback or automatic model download.
+
+**Known limitations / next step**
+
+- At implementation time, Ollama exposed no installed models and Open WebUI was
+  not running on its standard local port, so the exact existing Gemma/Qwen IDs
+  could not be detected. Start the relevant runtime and run `lynk models` to
+  capture the available IDs.
+- Next: connect the model adapter to the retrieval planner after chunking and
+  hybrid search are implemented.
+
+**Commit**
+
+- Pending this implementation commit.
+
 ## 2026-09-01 - Decision proposal: offline resilience and language baseline
 
 **Goal**

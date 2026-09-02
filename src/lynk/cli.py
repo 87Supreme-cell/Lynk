@@ -7,6 +7,7 @@ from pathlib import Path
 
 from lynk.catalog import DocumentCatalog
 from lynk.ingestion import DocumentIngestor, OCRmyPDFEngine
+from lynk.model_gateway import ModelConfig, create_local_chat_model
 from lynk.postgres import PostgresDocumentCatalog
 
 
@@ -21,6 +22,9 @@ def main() -> None:
     documents = commands.add_parser("documents", help="List ingested local documents")
     documents.add_argument("--data-dir", type=Path, default=Path("data"))
     documents.add_argument("--storage", choices=("sqlite", "postgres"), default="sqlite")
+    commands.add_parser("models", help="List models exposed by the configured local runtime")
+    chat = commands.add_parser("chat", help="Send a test prompt to the configured local model")
+    chat.add_argument("prompt")
     args = parser.parse_args()
 
     if args.command == "ingest":
@@ -30,6 +34,13 @@ def main() -> None:
         else:
             DocumentCatalog(args.data_dir / "lynk.sqlite3").add(document)
         print(f"Ingested {document.original_name}: {document.document_id} ({document.extraction_status})")
+        return
+    if args.command == "models":
+        for model in create_local_chat_model(ModelConfig.from_environment()).list_models():
+            print(model)
+        return
+    if args.command == "chat":
+        print(create_local_chat_model(ModelConfig.from_environment()).complete(args.prompt))
         return
     catalog = PostgresDocumentCatalog.from_environment() if args.storage == "postgres" else DocumentCatalog(args.data_dir / "lynk.sqlite3")
     for document in catalog.list_documents():
