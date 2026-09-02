@@ -25,6 +25,44 @@ user data.
 **Commit**
 ```
 
+## 2026-09-01 - Decision: local-first repository recovery
+
+**Goal**
+
+Make the build reproducible and auditable even when a GitHub push fails or a
+remote branch needs recovery.
+
+**Decisions**
+
+- The local Git working tree and committed history are the immediate source of
+  recovery; GitHub is a synchronized remote replica, not the only copy of the
+  build.
+- All meaningful work is made on a named branch and committed locally before a
+  remote push. A failed push leaves the local commit history intact and ready
+  to retry, inspect, or move to another remote.
+- Do not use force pushes or destructive Git resets for normal work. Preserve
+  the audit trail through additive commits and documented decisions.
+- Keep private `data/`, document originals, local databases, secrets, and
+  model weights out of Git. Their backup and restore process is a separate
+  future decision; this repository recovery policy protects reproducible code,
+  configuration, tests, and documentation.
+
+**Validation**
+
+- The project is developed on a dedicated `codex/` branch with local commits
+  pushed only after validation.
+- `docs/build-log.md`, `docs/decisions/`, and Git commits provide linked,
+  human-readable and machine-verifiable audit history.
+
+**Known limitations / next step**
+
+- Add a documented, encrypted local backup routine for private `data/` once
+  user documents and databases are introduced.
+
+**Commit**
+
+- Pending this decision-record commit.
+
 ## 2026-09-01 - Milestone 1: local document-ingestion foundation
 
 **Goal**
