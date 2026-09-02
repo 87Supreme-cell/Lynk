@@ -25,6 +25,42 @@ user data.
 **Commit**
 ```
 
+## 2026-09-01 - Decision proposal: offline resilience and language baseline
+
+**Goal**
+
+Ensure that Lynk can remain usable when the network is unreliable and choose a
+small, appropriate language stack for the project.
+
+**Decisions**
+
+- Established offline resilience as a required design goal. After an initial
+  installation, local document ingestion, PostgreSQL/pgvector retrieval, and a
+  locally hosted model must work without an internet connection.
+- Web discovery and first-time downloads of Python packages, Docker images,
+  OCR components, model weights, and updates necessarily require connectivity.
+  Those dependencies must be explicitly cached, versioned, and tested before
+  claiming offline readiness.
+- Proposed Python as the primary implementation language because it is the
+  strongest fit for document extraction, OCR integration, embeddings, model
+  adapters, evaluation, and agent orchestration. SQL is the first-class
+  language for the PostgreSQL retrieval schema and queries.
+- Defer TypeScript to a future custom web interface and defer Go/Rust to a
+  measured performance or deployment need. Avoid adding languages merely for
+  portfolio breadth.
+
+**Known limitations / next step**
+
+- Add an offline-readiness runbook and verification test: stop network access
+  after local dependencies, Docker images, database volume, and model files are
+  present; then prove ingestion, retrieval, and local inference still work.
+- Docker Desktop was not running during the PostgreSQL milestone, so live local
+  database verification remains pending.
+
+**Commit**
+
+- Pending this decision-record commit.
+
 ## 2026-09-01 - Milestone 2 foundation: SQL-first retrieval store
 
 **Goal**
