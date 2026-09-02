@@ -25,6 +25,39 @@ user data.
 **Commit**
 ```
 
+## 2026-09-02 - Milestone 4 foundation: local retrieval-to-model drafting
+
+**Goal**
+
+Connect the working local model adapter to page-cited, policy-bounded retrieval
+so Lynk can draft answers grounded in user-authorized evidence.
+
+**Implemented**
+
+- Added deterministic, page-aware chunking during PostgreSQL ingestion.
+- Added restricted PostgreSQL full-text retrieval that validates the resource
+  and filters before executing parameterized SQL.
+- Added a local research planner and `lynk research` command that passes only
+  retrieved evidence to Qwen/Gemma and requires `[S#]` citations in the draft.
+
+**Decisions**
+
+- Kept this first path keyword-based while no separate embedding model is
+  configured. Vector retrieval is the next additive layer, not a reason to
+  bypass provenance or permission filters.
+- The planner returns a draft only; it cannot automatically perform web
+  research or promote evidence into curated RAG.
+
+**Known limitations / next step**
+
+- Requires the local PostgreSQL/pgvector service to be running and populated
+  through `lynk ingest --storage postgres`.
+- Add a local embedding adapter and hybrid keyword/vector reranking next.
+
+**Commit**
+
+- Pending this implementation commit.
+
 ## 2026-09-01 - Milestone 3 foundation: local model adapters
 
 **Goal**

@@ -9,6 +9,8 @@ from lynk.catalog import DocumentCatalog
 from lynk.ingestion import DocumentIngestor, OCRmyPDFEngine
 from lynk.model_gateway import ModelConfig, create_local_chat_model
 from lynk.postgres import PostgresDocumentCatalog
+from lynk.research import LocalResearchPlanner
+from lynk.retrieval import PostgresRetriever
 
 
 def main() -> None:
@@ -25,6 +27,9 @@ def main() -> None:
     commands.add_parser("models", help="List models exposed by the configured local runtime")
     chat = commands.add_parser("chat", help="Send a test prompt to the configured local model")
     chat.add_argument("prompt")
+    research = commands.add_parser("research", help="Draft a cited answer from authorized local evidence")
+    research.add_argument("question")
+    research.add_argument("--resource", default="private_context")
     args = parser.parse_args()
 
     if args.command == "ingest":
@@ -41,6 +46,13 @@ def main() -> None:
         return
     if args.command == "chat":
         print(create_local_chat_model(ModelConfig.from_environment()).complete(args.prompt))
+        return
+    if args.command == "research":
+        planner = LocalResearchPlanner(
+            create_local_chat_model(ModelConfig.from_environment()), PostgresRetriever.from_environment()
+        )
+        draft = planner.draft(args.question, args.resource)
+        print(draft.answer)
         return
     catalog = PostgresDocumentCatalog.from_environment() if args.storage == "postgres" else DocumentCatalog(args.data_dir / "lynk.sqlite3")
     for document in catalog.list_documents():

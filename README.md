@@ -72,6 +72,17 @@ and its local base URL. Set `LYNK_MODEL_API_KEY` only if the local instance
 requires it. The adapter sends conservative `temperature` and `top_p` settings
 from the environment on every request.
 
+## Local evidence drafting
+
+After PostgreSQL is running and a document is ingested with `--storage postgres`,
+Lynk can retrieve authorized local chunks and have the configured local model
+produce a citation-bound draft. It does not perform web research or promote
+new RAG evidence.
+
+```bash
+lynk research 'What does this document say about the project?' --resource private_context
+```
+
 By default, `data/` is intentionally ignored by Git. Keep private documents,
 database files, model weights, and secrets local. Commit only synthetic or
 public fixtures and reproducible scripts.

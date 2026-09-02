@@ -6,6 +6,7 @@ import json
 import os
 from typing import Any
 
+from lynk.chunking import chunk_page
 from lynk.models import IngestedDocument
 
 
@@ -59,15 +60,29 @@ class PostgresDocumentCatalog:
                     json.dumps(document_metadata),
                 ),
             )
-            cursor.executemany(
-                """INSERT INTO document_pages
-                (document_id, page_number, content, needs_ocr, metadata)
-                VALUES (%s, %s, %s, %s, %s::jsonb)""",
-                [
-                    (document.document_id, page.number, page.text, page.needs_ocr, "{}")
-                    for page in document.pages
-                ],
-            )
+            chunk_index = 0
+            for page in document.pages:
+                cursor.execute(
+                    """INSERT INTO document_pages
+                    (document_id, page_number, content, needs_ocr, metadata)
+                    VALUES (%s, %s, %s, %s, %s::jsonb) RETURNING id""",
+                    (document.document_id, page.number, page.text, page.needs_ocr, "{}"),
+                )
+                page_id = cursor.fetchone()[0]
+                for chunk in chunk_page(page.number, page.text):
+                    cursor.execute(
+                        """INSERT INTO chunks
+                        (document_id, page_id, chunk_index, content, metadata)
+                        VALUES (%s, %s, %s, %s, %s::jsonb)""",
+                        (
+                            document.document_id,
+                            page_id,
+                            chunk_index,
+                            chunk.text,
+                            json.dumps({"page_number": page.number}),
+                        ),
+                    )
+                    chunk_index += 1
 
     def list_documents(self) -> list[dict[str, str]]:
         """Return safe, catalog-level document details without content text."""
