@@ -111,6 +111,30 @@ so Lynk can draft answers grounded in user-authorized evidence.
   through `lynk ingest --storage postgres`.
 - Add a local embedding adapter and hybrid keyword/vector reranking next.
 
+## 2026-09-03 - Governed retrieval enforcement foundation
+
+**Goal**
+
+Begin turning the repository's evidence-governance rules into executable
+boundaries before connecting a model to retrieval.
+
+**Implemented**
+
+- Added typed lifecycle, review, policy-decision, evidence, and chunk records.
+- Added deterministic retrieval and promotion policy checks.
+- Added page-aware chunking that preserves document version, page/span, hash,
+  lifecycle state, and collection scope.
+- Added a parameterized PostgreSQL full-text retrieval contract that exposes
+  only approved curated evidence or explicitly granted private context.
+- Added a migration for document versions, collection permissions, audit
+  events, and chunk citation offsets, plus policy and retrieval boundary tests.
+
+**Known limitations / next step**
+
+- The migration requires a migration runner; Docker init scripts alone do not
+  update existing database volumes.
+- Database transaction wiring, review endpoints, semantic retrieval, citation
+  validation, and the agent API remain to be implemented.
 **Commit**
 
 - Pending this implementation commit.
