@@ -77,6 +77,23 @@ lynk models
 lynk chat 'Reply with the word ready.'
 ```
 
+## Governed research
+
+Research drafts require a principal with an explicit collection grant. PostgreSQL
+ingestion grants the supplied principal access to its private collection; use
+the same identity when drafting. The model receives only policy-authorized
+evidence and a draft with missing or invented `[S#]` citations is withheld.
+
+```bash
+lynk ingest /path/to/document.pdf --storage postgres --principal local-owner
+lynk research 'What does this document establish?' --principal local-owner
+```
+
+For a new local database, Compose applies the governed-evidence migration during
+initialization. Existing database volumes require applying
+`infra/postgres/migrations/002_governed_evidence.sql` once before using the
+governed research command.
+
 For a locally running Open WebUI service, use `LYNK_MODEL_PROVIDER=open_webui`
 and its local base URL. Set `LYNK_MODEL_API_KEY` only if the local instance
 requires it. The adapter sends conservative `temperature` and `top_p` settings

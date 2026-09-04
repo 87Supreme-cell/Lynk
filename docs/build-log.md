@@ -52,6 +52,32 @@ or typing brittle iCloud filesystem paths.
 **Commit**
 ```
 
+## 2026-09-03 - Wire policy into the research path
+
+**Goal**
+
+Ensure the model-facing research command uses principal-scoped retrieval rather
+than the earlier resource-selected retrieval path.
+
+**Implemented**
+
+- Replaced `lynk research`'s direct dependency on the legacy retriever with a
+  governed PostgreSQL retriever that applies SQL and Python policy checks.
+- Added principal-aware private-upload grants, retrieval audit events, and
+  provenance-preserving PostgreSQL chunk writes.
+- Added citation-ID validation; invalid model drafts are withheld rather than
+  returned as grounded research.
+
+**Known limitations / next step**
+
+- Database migration execution, human review transaction wiring, structured
+  claim-level citation validation, and integration tests against PostgreSQL
+  remain required before making a production trust claim.
+
+**Commit**
+
+- Pending this implementation commit.
+
 ## 2026-09-02 - Decision: SQL verification before agent drafting
 
 **Goal**

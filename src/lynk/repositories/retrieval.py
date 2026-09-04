@@ -26,7 +26,8 @@ class PostgresEvidenceRepository:
         SELECT chunks.id::text AS evidence_id, documents.id::text AS document_id,
                collections.id::text AS collection_id, documents.status,
                collections.access_scope, chunks.content AS excerpt,
-               document_pages.page_number, documents.content_hash
+               document_pages.page_number, documents.content_hash,
+               documents.original_name AS document_name
         FROM chunks
         JOIN documents ON documents.id = chunks.document_id
         JOIN collections ON collections.id = documents.collection_id

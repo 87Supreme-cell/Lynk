@@ -1,5 +1,6 @@
 from lynk.research import LocalResearchPlanner
-from lynk.retrieval import RetrievedEvidence
+from lynk.governed_retrieval import RetrievedEvidence
+from lynk.repositories.retrieval import RetrievalRequest
 
 
 class FakeModel:
@@ -17,16 +18,16 @@ class FakeModel:
 
 
 class FakeRetriever:
-    def search(self, question: str, resource_name: str = "private_context") -> list[RetrievedEvidence]:
-        assert question == "What does the note say?"
-        assert resource_name == "private_context"
-        return [RetrievedEvidence("chunk", "doc", "note.md", 2, "The note contains evidence.", 0.9)]
+    def search(self, request: RetrievalRequest) -> list[RetrievedEvidence]:
+        assert request.query == "What does the note say?"
+        assert request.principal_id == "alice"
+        return [RetrievedEvidence("chunk", "doc", "note.md", 2, "The note contains evidence.")]
 
 
 def test_planner_only_uses_retrieved_evidence_and_requests_citations() -> None:
     model = FakeModel()
 
-    draft = LocalResearchPlanner(model, FakeRetriever()).draft("What does the note say?")
+    draft = LocalResearchPlanner(model, FakeRetriever()).draft("What does the note say?", "alice")
 
     assert draft.answer.endswith("[S1]")
     assert "[S1] note.md, p. 2" in model.prompt
@@ -35,9 +36,19 @@ def test_planner_only_uses_retrieved_evidence_and_requests_citations() -> None:
 
 def test_planner_reports_when_no_authorized_evidence_is_found() -> None:
     class EmptyRetriever:
-        def search(self, question: str, resource_name: str = "private_context") -> list[RetrievedEvidence]:
+        def search(self, request: RetrievalRequest) -> list[RetrievedEvidence]:
             return []
 
-    draft = LocalResearchPlanner(FakeModel(), EmptyRetriever()).draft("Missing?")
+    draft = LocalResearchPlanner(FakeModel(), EmptyRetriever()).draft("Missing?", "alice")
 
     assert "could not find sufficient evidence" in draft.answer
+
+
+def test_planner_rejects_drafts_with_invented_or_missing_citations() -> None:
+    class InvalidModel(FakeModel):
+        def complete(self, user_message: str, system_message: str = "") -> str:
+            return "Unsupported assertion. [S99]"
+
+    draft = LocalResearchPlanner(InvalidModel(), FakeRetriever()).draft("What does the note say?", "alice")
+
+    assert "citation-valid" in draft.answer

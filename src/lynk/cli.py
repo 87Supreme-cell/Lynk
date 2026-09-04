@@ -11,7 +11,7 @@ from lynk.ingestion import DocumentIngestor, OCRmyPDFEngine
 from lynk.model_gateway import ModelConfig, create_local_chat_model
 from lynk.postgres import PostgresDocumentCatalog
 from lynk.research import LocalResearchPlanner
-from lynk.retrieval import PostgresRetriever
+from lynk.governed_retrieval import GovernedPostgresRetriever
 
 
 def choose_document_path() -> Path:
@@ -39,6 +39,7 @@ def main() -> None:
     ingest.add_argument("--data-dir", type=Path, default=Path("data"))
     ingest.add_argument("--ocr", action="store_true", help="Use local ocrmypdf when text extraction is missing")
     ingest.add_argument("--storage", choices=("sqlite", "postgres"), default="sqlite")
+    ingest.add_argument("--principal", default="local-owner", help="Principal granted access to this private upload")
     documents = commands.add_parser("documents", help="List ingested local documents")
     documents.add_argument("--data-dir", type=Path, default=Path("data"))
     documents.add_argument("--storage", choices=("sqlite", "postgres"), default="sqlite")
@@ -47,7 +48,7 @@ def main() -> None:
     chat.add_argument("prompt")
     research = commands.add_parser("research", help="Draft a cited answer from authorized local evidence")
     research.add_argument("question")
-    research.add_argument("--resource", default="private_context")
+    research.add_argument("--principal", required=True, help="Identity with an explicit collection grant")
     args = parser.parse_args()
 
     if args.command == "ingest":
@@ -58,7 +59,7 @@ def main() -> None:
         source_path = choose_document_path() if args.choose else args.path
         document = DocumentIngestor(args.data_dir, OCRmyPDFEngine() if args.ocr else None).ingest(source_path)
         if args.storage == "postgres":
-            PostgresDocumentCatalog.from_environment().add(document)
+            PostgresDocumentCatalog.from_environment().add(document, principal_id=args.principal)
         else:
             DocumentCatalog(args.data_dir / "lynk.sqlite3").add(document)
         print(f"Ingested {document.original_name}: {document.document_id} ({document.extraction_status})")
@@ -72,9 +73,9 @@ def main() -> None:
         return
     if args.command == "research":
         planner = LocalResearchPlanner(
-            create_local_chat_model(ModelConfig.from_environment()), PostgresRetriever.from_environment()
+            create_local_chat_model(ModelConfig.from_environment()), GovernedPostgresRetriever.from_environment()
         )
-        draft = planner.draft(args.question, args.resource)
+        draft = planner.draft(args.question, args.principal)
         print(draft.answer)
         return
     catalog = PostgresDocumentCatalog.from_environment() if args.storage == "postgres" else DocumentCatalog(args.data_dir / "lynk.sqlite3")

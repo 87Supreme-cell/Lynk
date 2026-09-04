@@ -6,8 +6,9 @@ import json
 import os
 from typing import Any
 
-from lynk.chunking import chunk_page
+from lynk.domain import AccessScope, EvidenceStatus
 from lynk.models import IngestedDocument
+from lynk.services.chunking import PageChunker
 
 
 class PostgresDocumentCatalog:
@@ -28,6 +29,7 @@ class PostgresDocumentCatalog:
         document: IngestedDocument,
         collection_name: str = "private_context",
         metadata: dict[str, Any] | None = None,
+        principal_id: str = "local-owner",
     ) -> None:
         """Store provenance and extracted pages in an existing pgvector schema."""
         try:
@@ -43,6 +45,11 @@ class PostgresDocumentCatalog:
             )
             cursor.execute("SELECT id FROM collections WHERE name = %s", (collection_name,))
             collection_id = cursor.fetchone()[0]
+            cursor.execute(
+                """INSERT INTO collection_permissions (collection_id, principal_id, permission)
+                VALUES (%s, %s, 'retrieve') ON CONFLICT DO NOTHING""",
+                (collection_id, principal_id),
+            )
             cursor.execute(
                 """INSERT INTO documents
                 (id, collection_id, original_name, source_path, stored_path, content_hash,
@@ -60,7 +67,12 @@ class PostgresDocumentCatalog:
                     json.dumps(document_metadata),
                 ),
             )
-            chunk_index = 0
+            cursor.execute(
+                """INSERT INTO document_versions (document_id, version_number, content_hash, stored_path, extraction_status)
+                VALUES (%s, 1, %s, %s, %s)""",
+                (document.document_id, document.content_hash, str(document.stored_path), document.extraction_status),
+            )
+            page_ids: dict[int, object] = {}
             for page in document.pages:
                 cursor.execute(
                     """INSERT INTO document_pages
@@ -68,21 +80,17 @@ class PostgresDocumentCatalog:
                     VALUES (%s, %s, %s, %s, %s::jsonb) RETURNING id""",
                     (document.document_id, page.number, page.text, page.needs_ocr, "{}"),
                 )
-                page_id = cursor.fetchone()[0]
-                for chunk in chunk_page(page.number, page.text):
-                    cursor.execute(
-                        """INSERT INTO chunks
-                        (document_id, page_id, chunk_index, content, metadata)
-                        VALUES (%s, %s, %s, %s, %s::jsonb)""",
-                        (
-                            document.document_id,
-                            page_id,
-                            chunk_index,
-                            chunk.text,
-                            json.dumps({"page_number": page.number}),
-                        ),
-                    )
-                    chunk_index += 1
+                page_ids[page.number] = cursor.fetchone()[0]
+            for chunk in PageChunker().chunk(document, 1, EvidenceStatus.PRIVATE, AccessScope.PRIVATE):
+                cursor.execute(
+                    """INSERT INTO chunks
+                    (document_id, page_id, chunk_index, content, metadata, document_version, start_offset, end_offset)
+                    VALUES (%s, %s, %s, %s, %s::jsonb, %s, %s, %s)""",
+                    (document.document_id, page_ids[chunk.page_number], chunk.chunk_index, chunk.content,
+                     json.dumps({"page_number": chunk.page_number, "content_hash": chunk.content_hash,
+                                 "status": chunk.status, "access_scope": chunk.access_scope}),
+                     chunk.document_version, chunk.start_offset, chunk.end_offset),
+                )
 
     def list_documents(self) -> list[dict[str, str]]:
         """Return safe, catalog-level document details without content text."""
