@@ -52,6 +52,32 @@ or typing brittle iCloud filesystem paths.
 **Commit**
 ```
 
+## 2026-09-03 - Decision: standalone governed chat interface
+
+**Goal**
+
+Choose a frontend path that lets Lynk stand independently of Open WebUI while
+preserving governed retrieval as the authority for evidence access.
+
+**Decisions**
+
+- Adopt a five-stage path: independent UX design, React/TypeScript frontend,
+  mocked API integration, live local FastAPI integration, then optional desktop
+  packaging.
+- Keep Open WebUI and other model hosts behind Lynk's replaceable model-adapter
+  boundary; they are not the product interface or policy authority.
+- Keep principal identity, evidence selection, citation validation, and audit
+  logging on the Lynk backend rather than in the browser.
+
+**Known limitations / next step**
+
+- Define the versioned frontend API contract and mock responses before building
+  the interface.
+
+**Commit**
+
+- Pending this decision-record commit.
+
 ## 2026-09-03 - Wire policy into the research path
 
 **Goal**
